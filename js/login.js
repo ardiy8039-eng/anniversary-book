@@ -8,9 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = pinInput.value.trim();
     loginMessage.textContent = '';
 
-    console.log('supabase', supabase);
-    console.log('typeof supabase.from', typeof supabase?.from);
-    if (!supabase) {
+    console.log('window.db', window.db);
+    console.log('typeof window.db.from', typeof window.db.from);
+    if (!window.db) {
       console.error('Supabase client is not initialized.');
       loginMessage.textContent = 'Unable to log in right now. Supabase client not initialized.';
       return;
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       console.debug('Login attempt for PIN', pin);
-      const { data: hostData, error: hostError } = await supabase.from(HOST_TABLE).select('id,name').eq('pin', pin).maybeSingle();
+      const { data: hostData, error: hostError } = await window.db.from(HOST_TABLE).select('id,name').eq('pin', pin).maybeSingle();
       if (hostError) {
         console.error('Host lookup error', hostError);
         const hostTableMissing = /does not exist|relation.*does not exist|undefined_table|42P01/i.test(hostError.message || '');
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      const { data, error } = await supabase.from(GUEST_TABLE).select('id,name,message').eq('pin', pin).maybeSingle();
+      const { data, error } = await window.db.from(GUEST_TABLE).select('id,name,message').eq('pin', pin).maybeSingle();
       if (error) {
         console.error('Guest lookup error', error);
         loginMessage.textContent = error.message || 'Guest lookup failed.';

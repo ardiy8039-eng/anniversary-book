@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sessionData = sessionStorage.getItem(SUPABASE_SESSION_KEY);
   const guestSession = sessionData ? JSON.parse(sessionData) : null;
 
-  if (!supabase) {
+  if (!window.db) {
     console.error('Supabase client is not initialized on guest book.');
     window.location.href = 'index.html';
     return;
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   try {
-    const { data: guestRecord, error: guestError } = await supabase.from(GUEST_TABLE).select('id').eq('id', guestSession.guestId).maybeSingle();
+    const { data: guestRecord, error: guestError } = await window.db.from(GUEST_TABLE).select('id').eq('id', guestSession.guestId).maybeSingle();
     if (guestError || !guestRecord) {
       window.location.href = 'index.html';
       return;
@@ -57,14 +57,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       let guestData = null;
       if (pin) {
-        const { data, error } = await supabase.from(GUEST_TABLE).select('*').eq('pin', pin).maybeSingle();
+        const { data, error } = await window.db.from(GUEST_TABLE).select('*').eq('pin', pin).maybeSingle();
         if (error || !data) {
           guestMessage.textContent = 'PIN not recognized. Please try again.';
           return;
         }
         guestData = data;
       } else {
-        const { data, error } = await supabase.from(GUEST_TABLE).select('*').eq('id', guestSession.guestId).maybeSingle();
+        const { data, error } = await window.db.from(GUEST_TABLE).select('*').eq('id', guestSession.guestId).maybeSingle();
         if (error || !data) {
           guestMessage.textContent = 'Session expired. Please log in again.';
           window.location.href = 'index.html';
