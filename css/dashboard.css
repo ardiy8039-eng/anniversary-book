@@ -154,10 +154,18 @@ body {
   color: var(--muted);
   background: rgba(255,255,255,0.02);
   cursor: pointer;
+  transition: border-color 200ms ease, background-color 200ms ease, transform 200ms ease;
 }
 
 .upload-box:hover {
   border-color: rgba(212,175,55,0.55);
+  transform: translateY(-1px);
+}
+
+.upload-box.uploading {
+  background: rgba(212,175,55,0.08);
+  border-color: rgba(212,175,55,0.8);
+  box-shadow: inset 0 0 0 1px rgba(212,175,55,0.18);
 }
 
 .progress-group {
@@ -173,6 +181,7 @@ progress {
   overflow: hidden;
   border: none;
   background: rgba(255,255,255,0.08);
+  transition: width 200ms ease, background-color 200ms ease;
 }
 
 progress::-webkit-progress-bar {

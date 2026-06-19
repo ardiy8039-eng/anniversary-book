@@ -77,7 +77,7 @@ async function uploadFileToStorage(file) {
     upsert: false
   });
   if (error) throw error;
-  return data;
+  return data?.path || safeName;
 }
 
 async function saveMediaRecord(record) {

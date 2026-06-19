@@ -14,13 +14,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      if (pin === HOST_PIN) {
+      const { data: hostData, error: hostError } = await supabase.from(HOST_TABLE).select('id,name').eq('pin', pin).maybeSingle();
+      if (hostError) {
+        throw hostError;
+      }
+
+      if (hostData) {
         sessionStorage.setItem(APP_MODE_KEY, 'host');
+        sessionStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify({ hostId: hostData.id, hostName: hostData.name }));
         window.location.href = 'dashboard.html';
         return;
       }
 
-      const { data, error } = await supabase.from(GUEST_TABLE).select('id,name,message').eq('pin', pin).single();
+      const { data, error } = await supabase.from(GUEST_TABLE).select('id,name,message').eq('pin', pin).maybeSingle();
       if (error || !data) {
         loginMessage.textContent = 'PIN not found. Try again or ask the host for access.';
         return;

@@ -4,8 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const progressElement = document.getElementById('uploadProgress');
   const progressLabel = document.getElementById('progressLabel');
   const galleryGrid = document.getElementById('galleryGrid');
+  const uploadLibraryButton = document.getElementById('uploadLibraryButton');
 
   if (!dropZone || !fileInput) return;
+
+  let isUploading = false;
+  const uploadedSignatures = new Set();
 
   dropZone.addEventListener('click', () => fileInput.click());
   dropZone.addEventListener('dragover', (event) => {
@@ -27,33 +31,130 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   async function uploadFiles(files) {
-    if (!files.length) return;
-    progressElement.value = 0;
-    progressLabel.textContent = `Uploading ${files.length} file(s)...`;
+    if (!files.length || isUploading) return;
+    isUploading = true;
+    const safeFiles = [];
+    const fileSignatures = new Set();
+    resetProgress('Preparing files for upload...');
+    uploadLibraryButton.disabled = true;
+    dropZone.classList.add('uploading');
 
-    const tasks = files.map(async (file) => {
-      const stored = await uploadFileToStorage(file);
-      const fileType = file.type.startsWith('video/') ? 'video' : 'image';
-      return saveMediaRecord({
-        title: file.name,
-        path: stored.Key || stored.path || stored.name,
-        type: fileType,
-        uploaded_at: new Date().toISOString()
-      });
+    for (const file of files) {
+      const signature = `${file.name}_${file.size}_${file.lastModified}`;
+      if (fileSignatures.has(signature) || uploadedSignatures.has(signature)) {
+        console.warn('Skipping duplicate upload:', file.name);
+        continue;
+      }
+      fileSignatures.add(signature);
+      let preparedFile = file;
+
+      if (file.type.startsWith('image/')) {
+        try {
+          preparedFile = await compressImage(file);
+        } catch (error) {
+          console.warn('Image compression failed, uploading original file:', file.name, error);
+          preparedFile = file;
+        }
+      }
+
+      safeFiles.push({ original: file, file: preparedFile, signature });
+    }
+
+    if (!safeFiles.length) {
+      updateProgressBar(100, 'No new files to upload.');
+      cleanupUpload();
+      return;
+    }
+
+    const totalFiles = safeFiles.length;
+    let uploadedCount = 0;
+
+    const uploadTask = async ({ original, file, signature }) => {
+      try {
+        const fileType = file.type.startsWith('video/') ? 'video' : 'image';
+        const stored = await uploadFileToStorage(file);
+        const path = typeof stored === 'string' ? stored : stored?.path || stored?.Key || stored?.name;
+        if (!path) throw new Error('Upload returned no path for ' + file.name);
+        const saved = await saveMediaRecord({
+          title: original.name,
+          path,
+          type: fileType,
+          uploaded_at: new Date().toISOString()
+        });
+        uploadedSignatures.add(signature);
+        uploadedCount += 1;
+        updateProgressBar(Math.round((uploadedCount / totalFiles) * 100), `Uploading ${uploadedCount}/${totalFiles} file(s)...`);
+        return { status: 'fulfilled', value: saved };
+      } catch (reason) {
+        uploadedCount += 1;
+        updateProgressBar(Math.round((uploadedCount / totalFiles) * 100), `Uploading ${uploadedCount}/${totalFiles} file(s)...`);
+        return { status: 'rejected', reason };
+      }
+    };
+
+    const uploadPromises = safeFiles.map((item) => uploadTask(item));
+    const results = await Promise.all(uploadPromises);
+    const errors = results.filter(result => result.status === 'rejected');
+    if (errors.length) {
+      console.error('Upload errors:', errors.map(item => item.reason));
+      progressLabel.textContent = `Upload completed with ${errors.length} error(s). See console for details.`;
+    } else {
+      progressLabel.textContent = 'Upload complete. Refreshing gallery...';
+    }
+
+    progressElement.value = 100;
+    await refreshGallery();
+    setTimeout(() => {
+      if (!errors.length) {
+        progressLabel.textContent = 'All files uploaded successfully.';
+      }
+    }, 800);
+    cleanupUpload();
+  }
+
+  function resetProgress(message) {
+    if (progressElement) progressElement.value = 0;
+    if (progressLabel) progressLabel.textContent = message;
+  }
+
+  function updateProgressBar(value, message) {
+    if (progressElement) progressElement.value = value;
+    if (progressLabel) progressLabel.textContent = message;
+  }
+
+  function cleanupUpload() {
+    isUploading = false;
+    uploadLibraryButton.disabled = false;
+    dropZone.classList.remove('uploading');
+  }
+
+  async function compressImage(file) {
+    if (!file.type.startsWith('image/')) return file;
+
+    const bitmap = await createImageBitmap(file);
+    const maxDimension = 1920;
+    const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    const quality = mimeType === 'image/jpeg' ? 0.8 : 0.92;
+    const blob = await new Promise((resolve, reject) => {
+      canvas.toBlob((blobResult) => {
+        if (blobResult) {
+          resolve(blobResult);
+        } else {
+          reject(new Error('Image compression failed.'));
+        }
+      }, mimeType, quality);
     });
 
-    try {
-      const results = await Promise.all(tasks);
-      progressElement.value = 100;
-      progressLabel.textContent = 'Upload complete. Refreshing gallery...';
-      renderGallery(await fetchGallery());
-      setTimeout(() => {
-        progressLabel.textContent = 'All files uploaded successfully.';
-      }, 1200);
-    } catch (error) {
-      progressLabel.textContent = 'Upload failed. Please try again.';
-      console.error(error);
-    }
+    return blob.size < file.size ? new File([blob], file.name, { type: blob.type, lastModified: Date.now() }) : file;
   }
 
   async function renderGallery(items = []) {
@@ -84,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  async function loadGallery() {
+  async function refreshGallery() {
     try {
       const items = await fetchGallery();
       renderGallery(items);
@@ -95,6 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadGallery();
+
+  async function loadGallery() {
+    await refreshGallery();
+  }
 });
 
 function escapeHtml(value) {

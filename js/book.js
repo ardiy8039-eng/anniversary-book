@@ -14,6 +14,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const closeMediaModal = document.getElementById('closeMediaModal');
   const mediaList = document.getElementById('mediaList');
 
+  const mode = sessionStorage.getItem(APP_MODE_KEY);
+  const sessionData = sessionStorage.getItem(SUPABASE_SESSION_KEY);
+  const guestSession = sessionData ? JSON.parse(sessionData) : null;
+
+  if (mode !== 'guest' || !guestSession?.guestId) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  try {
+    const { data: guestRecord, error: guestError } = await supabase.from(GUEST_TABLE).select('id').eq('id', guestSession.guestId).maybeSingle();
+    if (guestError || !guestRecord) {
+      window.location.href = 'index.html';
+      return;
+    }
+  } catch (error) {
+    console.error(error);
+    window.location.href = 'index.html';
+    return;
+  }
+
   if (!guestPinInput || !openBookButton) return;
 
   let currentPage = 1;
@@ -22,17 +43,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   openBookButton.addEventListener('click', async () => {
     guestMessage.textContent = '';
     const pin = guestPinInput.value.trim();
-    if (!/^[0-9]{4}$/.test(pin)) {
+    if (!pin && !guestSession?.guestId) {
       guestMessage.textContent = 'Enter a valid 4-digit PIN.';
       return;
     }
 
     try {
-      const { data, error } = await supabase.from(GUEST_TABLE).select('*').eq('pin', pin).single();
-      if (error || !data) {
-        guestMessage.textContent = 'PIN not recognized. Please try again.';
-        return;
+      let guestData = null;
+      if (pin) {
+        const { data, error } = await supabase.from(GUEST_TABLE).select('*').eq('pin', pin).maybeSingle();
+        if (error || !data) {
+          guestMessage.textContent = 'PIN not recognized. Please try again.';
+          return;
+        }
+        guestData = data;
+      } else {
+        const { data, error } = await supabase.from(GUEST_TABLE).select('*').eq('id', guestSession.guestId).maybeSingle();
+        if (error || !data) {
+          guestMessage.textContent = 'Session expired. Please log in again.';
+          window.location.href = 'index.html';
+          return;
+        }
+        guestData = data;
       }
+
       await initializeBook();
       guestPinInput.value = '';
       flipBookSection.classList.remove('hidden');

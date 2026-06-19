@@ -1,7 +1,6 @@
 const SUPABASE_URL = '';
 const SUPABASE_ANON_KEY = '';
-const HOST_PIN = '9999';
-const HOST_NAME = 'Muhama Ardiansyah';
+const HOST_TABLE = 'hosts';
 const GUEST_TABLE = 'books';
 const MEDIA_TABLE = 'media';
 const STORAGE_BUCKET = 'anniversary-media';

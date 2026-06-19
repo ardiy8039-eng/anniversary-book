@@ -1,9 +1,23 @@
 document.addEventListener('DOMContentLoaded', async () => {
   const mode = sessionStorage.getItem(APP_MODE_KEY);
-  if (mode !== 'host') {
+  const sessionData = sessionStorage.getItem(SUPABASE_SESSION_KEY);
+  const hostSession = sessionData ? JSON.parse(sessionData) : null;
+
+  if (mode !== 'host' || !hostSession?.hostId) {
     window.location.href = 'index.html';
     return;
   }
+
+  const { data: hostRecord, error: hostError } = await supabase.from(HOST_TABLE).select('id,name').eq('id', hostSession.hostId).maybeSingle();
+  if (hostError || !hostRecord) {
+    window.location.href = 'index.html';
+    return;
+  }
+
+  const hostNameHeader = document.getElementById('hostNameHeader');
+  const hostNameText = document.getElementById('hostNameText');
+  if (hostNameHeader) hostNameHeader.textContent = hostRecord.name;
+  if (hostNameText) hostNameText.textContent = hostRecord.name;
 
   const panels = document.querySelectorAll('.panel');
   const navLinks = document.querySelectorAll('.nav-link');
