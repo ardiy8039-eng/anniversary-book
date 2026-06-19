@@ -1,19 +1,10 @@
-const createClientFactory = typeof globalThis !== 'undefined' && typeof globalThis.createClient === 'function'
-  ? globalThis.createClient
-  : typeof window !== 'undefined' && typeof window.createClient === 'function'
-    ? window.createClient
-    : typeof globalThis !== 'undefined' && globalThis.supabase?.createClient
-      ? globalThis.supabase.createClient
-      : typeof window !== 'undefined' && window.supabase?.createClient
-        ? window.supabase.createClient
-        : null;
-
-const supabase = createClientFactory
-  ? createClientFactory(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+const supabase = window.supabase?.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
 if (!supabase) {
-  console.error('Supabase client could not be initialized. Confirm that the Supabase UMD script is loaded before js/supabase.js and that the correct path is used: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
+  console.error('Supabase client could not be initialized. Confirm that the Supabase UMD script is loaded before js/supabase.js and that window.supabase.createClient is available.');
 }
 
 async function fetchCustomers(searchTerm = '') {

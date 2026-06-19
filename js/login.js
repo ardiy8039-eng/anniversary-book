@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pin = pinInput.value.trim();
     loginMessage.textContent = '';
 
+    console.log('supabase', supabase);
+    console.log('typeof supabase.from', typeof supabase?.from);
     if (!supabase) {
       console.error('Supabase client is not initialized.');
       loginMessage.textContent = 'Unable to log in right now. Supabase client not initialized.';
