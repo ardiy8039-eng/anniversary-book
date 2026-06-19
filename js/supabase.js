@@ -1,10 +1,19 @@
-const supabase = window.createClient
-  ? window.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : window.supabase?.createClient
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-    : null;
+const createClientFactory = typeof globalThis !== 'undefined' && typeof globalThis.createClient === 'function'
+  ? globalThis.createClient
+  : typeof window !== 'undefined' && typeof window.createClient === 'function'
+    ? window.createClient
+    : typeof globalThis !== 'undefined' && globalThis.supabase?.createClient
+      ? globalThis.supabase.createClient
+      : typeof window !== 'undefined' && window.supabase?.createClient
+        ? window.supabase.createClient
+        : null;
+
+const supabase = createClientFactory
+  ? createClientFactory(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
 if (!supabase) {
-  console.warn('Supabase client could not be initialized. Confirm that the Supabase JS library is loaded before supabase.js.');
+  console.error('Supabase client could not be initialized. Confirm that the Supabase UMD script is loaded before js/supabase.js and that the correct path is used: https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js');
 }
 
 async function fetchCustomers(searchTerm = '') {
@@ -77,7 +86,7 @@ async function uploadFileToStorage(file) {
     upsert: false
   });
   if (error) throw error;
-  return data?.path || safeName;
+  return data?.path || data?.Key || safeName;
 }
 
 async function saveMediaRecord(record) {

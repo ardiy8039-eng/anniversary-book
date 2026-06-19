@@ -47,10 +47,17 @@ A production-ready Anniversary Book CMS built with:
 ## Setup
 
 1. Create a Supabase project.
-2. Create database tables: `hosts`, `books`, `media`, and `quiz`.
-3. Create a storage bucket named `anniversary-media`.
+2. Run the SQL scripts in the `sql/` folder to create the required tables:
+   - `sql/create_hosts_table.sql`
+   - `sql/create_books_table.sql`
+   - `sql/create_media_table.sql`
+   - `sql/create_quiz_table.sql`
+3. Create a storage bucket named `anniversary-media` in Supabase Storage.
 4. Update `js/config.js` with your Supabase project URL and anon key.
 5. Deploy to Netlify.
+
+> Note: The frontend expects the Supabase UMD browser bundle from:
+> `https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js`
 
 ## Notes
 

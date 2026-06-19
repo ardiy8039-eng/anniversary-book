@@ -8,8 +8,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
+  if (!supabase) {
+    console.error('Supabase client is not initialized on dashboard.');
+    window.location.href = 'index.html';
+    return;
+  }
+
   const { data: hostRecord, error: hostError } = await supabase.from(HOST_TABLE).select('id,name').eq('id', hostSession.hostId).maybeSingle();
   if (hostError || !hostRecord) {
+    console.error('Dashboard auth failed:', hostError || 'Host session not found');
     window.location.href = 'index.html';
     return;
   }

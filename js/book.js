@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const sessionData = sessionStorage.getItem(SUPABASE_SESSION_KEY);
   const guestSession = sessionData ? JSON.parse(sessionData) : null;
 
+  if (!supabase) {
+    console.error('Supabase client is not initialized on guest book.');
+    window.location.href = 'index.html';
+    return;
+  }
+
   if (mode !== 'guest' || !guestSession?.guestId) {
     window.location.href = 'index.html';
     return;
