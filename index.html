@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anniversary Book — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+</head>
+<body>
+  <div class="page-shell login-shell">
+    <header class="brand-bar">
+      <div>
+        <p class="eyebrow">Anniversary Book</p>
+        <h1>Welcome to Muhama Ardiansyah's Experience</h1>
+      </div>
+    </header>
+
+    <main class="login-card" aria-label="Login section">
+      <section class="welcome-panel">
+        <h2>Private Access</h2>
+        <p>Enter your unique 4-digit PIN to open the Anniversary Book and share memories.</p>
+      </section>
+
+      <form id="loginForm" class="login-form" autocomplete="off">
+        <div class="form-group">
+          <label for="pinInput">4-digit PIN</label>
+          <input id="pinInput" name="pin" type="password" inputmode="numeric" maxlength="4" pattern="\d{4}" placeholder="••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Enter Book</button>
+        <p class="host-credential">Host PIN: <strong>9999</strong></p>
+        <p id="loginMessage" class="toast-message"></p>
+      </form>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

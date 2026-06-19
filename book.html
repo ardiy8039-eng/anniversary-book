@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anniversary Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/book.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+</head>
+<body>
+  <div class="book-shell">
+    <header class="book-header">
+      <div>
+        <p class="eyebrow">Guest Experience</p>
+        <h1>The Anniversary Book</h1>
+      </div>
+      <div class="top-actions">
+        <button id="openGalleryButton" class="btn btn-secondary">Open Gallery</button>
+        <button id="playMusicButton" class="btn btn-primary">Play Music</button>
+      </div>
+    </header>
+
+    <section class="hero-card">
+      <div class="hero-copy">
+        <h2>Welcome to Muhama &amp; Ardiansyah's Celebration.</h2>
+        <p>Enter a private PIN to leave a message and explore cherished moments.</p>
+      </div>
+      <div class="hero-form">
+        <label for="guestPinInput">Guest PIN</label>
+        <input id="guestPinInput" type="password" maxlength="4" inputmode="numeric" placeholder="••••">
+        <button id="openBookButton" class="btn btn-primary">Open Book</button>
+        <p id="guestMessage" class="toast-message"></p>
+      </div>
+    </section>
+
+    <section id="flipBookSection" class="flipbook-section hidden">
+      <div class="flipbook-stage">
+        <div class="page" data-page="1">
+          <article class="page-inner">
+            <h3>Memories</h3>
+            <p id="pageContent1">A luxury anniversary experience awaits. Flip to discover photos, video stories, and heartfelt messages.</p>
+          </article>
+        </div>
+        <div class="page" data-page="2">
+          <article class="page-inner">
+            <h3>Guest Messages</h3>
+            <div id="guestMessages" class="message-list"></div>
+          </article>
+        </div>
+        <div class="page" data-page="3">
+          <article class="page-inner gallery-panel">
+            <h3>Gallery</h3>
+            <div id="bookGallery" class="gallery-grid"></div>
+          </article>
+        </div>
+        <div class="page" data-page="4">
+          <article class="page-inner quiz-panel">
+            <h3>Quiz</h3>
+            <div id="quizPrompt" class="quiz-prompt"></div>
+          </article>
+        </div>
+      </div>
+      <div class="flip-controls">
+        <button id="prevPage" class="btn btn-ghost">Previous</button>
+        <button id="nextPage" class="btn btn-ghost">Next</button>
+      </div>
+    </section>
+
+    <section id="mediaModal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <button id="closeMediaModal" class="modal-close" aria-label="Close media viewer">×</button>
+        <h3>Gallery Preview</h3>
+        <div id="mediaList" class="media-list"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/book.js"></script>
+  <script src="js/animation.js"></script>
+  <script src="js/quiz.js"></script>
+</body>
+</html>

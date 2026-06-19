@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anniversary Book — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+</head>
+<body>
+  <div class="dashboard-shell">
+    <aside class="dashboard-sidebar">
+      <div class="brand-block">
+        <span class="brand-mark">MA</span>
+        <div>
+          <p class="eyebrow">Host Dashboard</p>
+          <h1>Muhama Ardiansyah</h1>
+        </div>
+      </div>
+
+      <nav class="dashboard-nav" aria-label="Dashboard navigation">
+        <button class="nav-link active" data-panel="customersPanel">Customers</button>
+        <button class="nav-link" data-panel="galleryPanel">Media Gallery</button>
+        <button class="nav-link" data-panel="quizPanel">Quiz</button>
+        <button class="nav-link" data-panel="settingsPanel">Settings</button>
+      </nav>
+
+      <div class="dashboard-footer">
+        <p>Supercharged by Supabase & Netlify</p>
+        <button id="signOutButton" class="btn btn-ghost">Sign Out</button>
+      </div>
+    </aside>
+
+    <main class="dashboard-main">
+      <section id="customersPanel" class="panel active-panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Customer management</p>
+            <h2>Guest Book Customers</h2>
+          </div>
+          <button id="newCustomerButton" class="btn btn-primary">Add Customer</button>
+        </div>
+
+        <div class="search-bar">
+          <label for="customerSearch">Search by name or PIN</label>
+          <input id="customerSearch" type="search" placeholder="Search customers...">
+        </div>
+
+        <div id="customerTableWrapper" class="table-wrapper"></div>
+      </section>
+
+      <section id="galleryPanel" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Media uploads</p>
+            <h2>Gallery & Storage</h2>
+          </div>
+          <button id="uploadLibraryButton" class="btn btn-primary">Upload Media</button>
+        </div>
+
+        <div class="upload-box" id="uploadDropZone">
+          <p>Drop images or videos here, or click to choose files</p>
+          <input id="galleryFileInput" type="file" accept="image/*,video/*" multiple hidden>
+        </div>
+
+        <div class="progress-group">
+          <label>Upload progress</label>
+          <progress id="uploadProgress" value="0" max="100"></progress>
+          <p id="progressLabel">No files uploading</p>
+        </div>
+
+        <div id="galleryGrid" class="gallery-grid"></div>
+      </section>
+
+      <section id="quizPanel" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Memory quiz</p>
+            <h2>Anniversary Quiz Builder</h2>
+          </div>
+        </div>
+
+        <div class="quiz-builder">
+          <p>Create a fun quiz for guests to enjoy when they visit the book.</p>
+          <div class="quiz-card">
+            <div class="quiz-field">
+              <label for="quizQuestion">Question</label>
+              <input id="quizQuestion" type="text" placeholder="What is the best anniversary memory?">
+            </div>
+            <div class="quiz-field-row">
+              <div class="quiz-field"><label for="quizAnswer1">Answer 1</label><input id="quizAnswer1" type="text" placeholder="Answer option"></div>
+              <div class="quiz-field"><label for="quizAnswer2">Answer 2</label><input id="quizAnswer2" type="text" placeholder="Answer option"></div>
+            </div>
+            <div class="quiz-field-row">
+              <div class="quiz-field"><label for="quizAnswer3">Answer 3</label><input id="quizAnswer3" type="text" placeholder="Answer option"></div>
+              <div class="quiz-field"><label for="quizAnswer4">Answer 4</label><input id="quizAnswer4" type="text" placeholder="Answer option"></div>
+            </div>
+            <button id="saveQuizButton" class="btn btn-primary">Save Quiz</button>
+            <p id="quizMessage" class="toast-message"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="settingsPanel" class="panel">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Configuration</p>
+            <h2>Host settings</h2>
+          </div>
+        </div>
+        <div class="settings-grid">
+          <article class="settings-card">
+            <h3>Host account</h3>
+            <p>Name: <strong>Muhama Ardiansyah</strong></p>
+            <p>Host PIN: <strong>9999</strong></p>
+          </article>
+          <article class="settings-card">
+            <h3>Storage bucket</h3>
+            <p>Bucket: <strong>anniversary-media</strong></p>
+            <p>Uploads are saved directly to Supabase Storage.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="customerModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-content">
+      <button class="modal-close" id="customerModalClose" aria-label="Close dialog">×</button>
+      <h3 id="modalTitle">Add Customer</h3>
+      <form id="customerForm" class="modal-form">
+        <div class="field-row">
+          <label for="customerName">Name</label>
+          <input id="customerName" type="text" required>
+        </div>
+        <div class="field-row">
+          <label for="customerMessage">Message</label>
+          <textarea id="customerMessage" rows="3" required></textarea>
+        </div>
+        <div class="field-row small-row">
+          <label for="customerPin">PIN</label>
+          <input id="customerPin" type="text" maxlength="4" pattern="\d{4}" required>
+          <button type="button" id="generatePinButton" class="btn btn-secondary">Generate PIN</button>
+        </div>
+        <input id="customerId" type="hidden">
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-primary">Save customer</button>
+        </div>
+      </form>
+      <p id="modalMessage" class="toast-message"></p>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/upload.js"></script>
+  <script src="js/quiz.js"></script>
+</body>
+</html>
